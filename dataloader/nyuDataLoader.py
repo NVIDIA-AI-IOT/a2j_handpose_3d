@@ -19,36 +19,33 @@ import pipeline.constants as const
 from dataloader.pre_process import preprocess
 
 class A2J_NYU_DataLoader(Dataset):
-    def __init__(self, img_name_list, train=True, \
-                img_path=const.DEPTH_IMG_PATH, joint_path=const.JOINT_JSON_PATH, target_size=const.TARGET_SIZE, \
+    def __init__(self, train=True, dataset_path=const.DATASET_PATH, target_size=const.TARGET_SIZE, \
                 depth_threshold=const.DEPTH_THRESHOLD, num_joints=const.NUM_JOINTS, joint_list=const.JOINT_LIST, \
                 rand_crop_shift=const.RAND_CROP_SHIFT, rand_rotate=const.RANDOM_ROTATE, rand_scale=const.RAND_SCALE):
         """
         Class initilizer
 
         :param img_name_list: None
-        :param img_path: the full path to the image directory 
-        :param joint_path: the full path to the joints json file
+        :param dataset_path: the full path to the image directory
         :param target_size: tuple, the input size of the nework
         """
         if train:
-            self.img_path = os.path.join(img_path, "train")
+            self.dataset_path = os.path.join(dataset_path, "train")
         else:
-            self.img_path = os.path.join(img_path, "test")
+            self.dataset_path = os.path.join(dataset_path, "test")
 
-        if const.DATA_SEGMENT == "ALL":
-            self.img_name_list = glob(f"{self.img_path}/depth*.png")
+        if const.CAMERA_VIEW == "ALL":
+            self.img_name_list = glob(f"{self.dataset_path}/depth*.png")
         else:
-            self.img_name_list = glob(f"{self.img_path}/depth_1_*.png")
+            self.img_name_list = glob(f"{self.dataset_path}/depth_1_*.png")
         
-        joint_path = os.path.join(self.img_path, "joint_data.mat")
+        joint_path = os.path.join(self.dataset_path, "joint_data.mat")
         self.joint = loadmat(joint_path)["joint_uvd"]
         
-        if const.DATA_SEGMENT == "ALL":
+        if const.CAMERA_VIEW == "ALL":
             self.length = 0
             for i in self.joint:
                 self.length += len(i)
-
             assert self.length == len(self.img_name_list)
 
         self.target_size = target_size
@@ -73,9 +70,9 @@ class A2J_NYU_DataLoader(Dataset):
         :joints: original joint annotations
         :median: the median depth of the hand
         """
-        img_path = self.img_name_list[idx]
-        img_name = img_path.split("/")[-1].split(".")[0]
-        depth_img = cv2.imread(img_path)
+        dataset_path = self.img_name_list[idx]
+        img_name = dataset_path.split("/")[-1].split(".")[0]
+        depth_img = cv2.imread(dataset_path)
         new_depth_img = np.left_shift(depth_img[:,:,1].astype(np.uint16), 8) + depth_img[:,:,0].astype(np.uint16) 
         
         camera_num = int(img_name.split("_")[1])

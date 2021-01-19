@@ -15,9 +15,17 @@ import pipeline.constants as const
 from pipeline.utils import * 
 from pipeline.model_setup import ModelSetup
 from model.run import run_model
-# from visualizer.create_point_cloud import CreatePointCloud
 
 def back_to_normal(pred_joints, true_joints, xy_bb, median_depth):
+    """
+    Bring the joint predictions to the original space
+
+    :param pred_joints: Model predicted joints
+    :param true_joints: Ground truth transformed joints
+    :param median_depth: median depth of the hand in the original depth image
+    
+    :return: predicted joints and ground truth joints in original space
+    """
     pred_joints = pred_joints.detach().numpy()
     true_joints = true_joints.detach().numpy()
     xy_bb = xy_bb.detach().numpy()
@@ -37,62 +45,6 @@ def back_to_normal(pred_joints, true_joints, xy_bb, median_depth):
     true_joint[:,2] = true_joints[:,2] + median_depth
 
     return pred_joint, true_joint
-
-def pick_points(pcd, pred_joints_point_cloud, true_joints_point_cloud):
-    print("")
-    print(
-        "1) Please pick at least three correspondences using [shift + left click]"
-    )
-    print("   Press [shift + right click] to undo point picking")
-    print("2) Afther picking points, press q for close the window")
-    vis = o3d.visualization.VisualizerWithEditing()
-    vis.create_window()
-    vis.add_geometry(pred_joints_point_cloud)
-    vis.add_geometry(true_joints_point_cloud)
-    vis.add_geometry(pcd)
-    vis.run()# user picks points
-    vis.destroy_window()
-    print("")
-    return vis.get_picked_points()
-
-
-"""
-def visualize_point_cloud(depth_img, pred_joint, true_joint, median_depth):
-    depth_img = depth_img.detach().numpy()
-    cpc = CreatePointCloud()
-    point_cloud_data, true_joint, pred_joint = cpc.create_point_cloud_from_2D(depth_img, true_joint, pred_joint)
-
-    pred_color = [[255, 0, 0] for i in pred_joint]
-    true_color = [[0, 255, 0] for i in true_joint]
-
-    pcd = o3d.geometry.PointCloud()
-    pcd.points = o3d.utility.Vector3dVector(point_cloud_data)
-
-    pred_joints_point_cloud = o3d.geometry.PointCloud()
-    pred_joints_point_cloud.points = o3d.utility.Vector3dVector(pred_joint)
-    pred_joints_point_cloud.colors = o3d.utility.Vector3dVector(pred_color)
-
-    true_joints_point_cloud = o3d.geometry.PointCloud()
-    true_joints_point_cloud.points = o3d.utility.Vector3dVector(true_joint)
-    true_joints_point_cloud.colors = o3d.utility.Vector3dVector(true_color)
-
-    points = pick_points(pcd, pred_joints_point_cloud, true_joints_point_cloud)
-    import pdb; pdb.set_trace()
-
-    o3d.visualization.draw_geometries([pcd, pred_joints_point_cloud, true_joints_point_cloud])
-"""
-
-def draw_img(img, pred_joint, true_joint):
-    img = img.detach().numpy()
-    pred_joint = pred_joint.detach().numpy()
-    true_joint = true_joint.detach().numpy()
-
-    fig, ax = plt.subplots(1)
-
-    ax.imshow(img[0], cmap="hot", interpolation='nearest')
-    ax.scatter(x=pred_joint[:,1], y=pred_joint[:,0], c="b", s=20)
-    ax.scatter(x=true_joint[:,1], y=true_joint[:,0], c="g", s=20)
-    plt.show()
 
 def draw_img_normal(img, pred_joint, true_joint, median):
     """
@@ -145,9 +97,6 @@ def vizualize_frams(ax_1, ax_2, depth_image, pred_joints, true_joints, median, o
     mid_y = (max_range[1] + min_range[1])/2 
     mid_z = (max_range[2] + min_range[2])/2
 
-    # fig = plt.figure(figsize=(6,10))
-
-    # ax_1 = fig.add_subplot(2,1,1)
     depth_image = depth_image.detach().numpy()
 
     palette = plt.cm.jet_r
@@ -161,8 +110,6 @@ def vizualize_frams(ax_1, ax_2, depth_image, pred_joints, true_joints, median, o
 
 
     # Second subplot
-    # ax_2 = fig.add_subplot(111, projection="3d")
-    # ax_2 = fig.add_subplot(2, 1, 2, projection='3d')
     ax_2.grid(True)
     ax_2.set_xticklabels([])
     ax_2.set_yticklabels([]) 
@@ -172,18 +119,27 @@ def vizualize_frams(ax_1, ax_2, depth_image, pred_joints, true_joints, median, o
     ax_2.set_ylim(mid_y - max_range[1]/2, mid_y + max_range[1]/2) 
     ax_2.set_zlim(mid_z - max_range[2]/2, mid_z + max_range[2]/2) 
     scat_1 = ax_2.scatter(true_joints[:,0], true_joints[:,1], true_joints[:,2], c='g', marker='o', s=20) 
-    scat_2 = ax_2.scatter(pred_joints[:,0], pred_joints[:,1], pred_joints[:,2], c='r', marker='^', s=20) 
-    # ax_2.plot(pred_joints[0:4,0], pred_joints[0:4,1], pred_joints[0:4,2], color='b')
-    # ax_2.plot(pred_joints[4:8,0], pred_joints[4:8,1], pred_joints[4:8,2], color='b')
-    # ax_2.plot(pred_joints[8:12,0], pred_joints[8:12,1], pred_joints[8:12,2], color='b')
-    # ax_2.plot(pred_joints[12:16,0], pred_joints[12:16,1], pred_joints[12:16,2], color='b')
-    # ax_2.plot(pred_joints[16:20,0], pred_joints[16:20,1], pred_joints[16:20,2], color='b')
+    scat_2 = ax_2.scatter(pred_joints[:,0], pred_joints[:,1], pred_joints[:,2], c='r', marker='^', s=20)
+
+    if const.NUM_JOINTS == 16:
+        ax_2.plot(pred_joints[0:3,0], pred_joints[0:3,1], pred_joints[0:3,2], color='b')
+        ax_2.plot(pred_joints[3:6,0], pred_joints[3:6,1], pred_joints[3:6,2], color='b')
+        ax_2.plot(pred_joints[6:9,0], pred_joints[6:9,1], pred_joints[6:9,2], color='b')
+        ax_2.plot(pred_joints[9:12,0], pred_joints[9:12,1], pred_joints[9:12,2], color='b')
+        ax_2.plot(pred_joints[12:15,0], pred_joints[12:15,1], pred_joints[12:15,2], color='b')
+        ax_2.plot([pred_joints[2,0], pred_joints[15,0]], [pred_joints[2,1], pred_joints[15,1]], [pred_joints[2,2], pred_joints[15,2]], color='b')
+        ax_2.plot([pred_joints[5,0], pred_joints[15,0]], [pred_joints[5,1], pred_joints[15,1]], [pred_joints[5,2], pred_joints[15,2]], color='b')
+        ax_2.plot([pred_joints[8,0], pred_joints[15,0]], [pred_joints[8,1], pred_joints[15,1]], [pred_joints[8,2], pred_joints[15,2]], color='b')
+        ax_2.plot([pred_joints[11,0], pred_joints[15,0]], [pred_joints[11,1], pred_joints[15,1]], [pred_joints[11,2], pred_joints[15,2]], color='b')
+        ax_2.plot([pred_joints[14,0], pred_joints[15,0]], [pred_joints[14,1], pred_joints[15,1]], [pred_joints[14,2], pred_joints[15,2]], color='b')
+
+    if const.NUM_JOINTS == 36:
+        ax_2.plot(pred_joints[0:6,0], pred_joints[0:6,1], pred_joints[0:6,2], color='b')
+        ax_2.plot(pred_joints[6:12,0], pred_joints[6:12,1], pred_joints[6:12,2], color='b')
+        ax_2.plot(pred_joints[12:18,0], pred_joints[12:18,1], pred_joints[12:18,2], color='b')
+        ax_2.plot(pred_joints[18:24,0], pred_joints[18:24,1], pred_joints[18:24,2], color='b')
+        ax_2.plot(pred_joints[24:30,0], pred_joints[24:30,1], pred_joints[24:30,2], color='b')
     
-    # ax_2.plot([pred_joints[3,0], pred_joints[20,0]], [pred_joints[3,1], pred_joints[20,1]], [pred_joints[3,2], pred_joints[20,2]], color='b')
-    # ax_2.plot([pred_joints[7,0], pred_joints[20,0]], [pred_joints[7,1], pred_joints[20,1]], [pred_joints[7,2], pred_joints[20,2]], color='b')
-    # ax_2.plot([pred_joints[11,0], pred_joints[20,0]], [pred_joints[11,1], pred_joints[20,1]], [pred_joints[11,2], pred_joints[20,2]], color='b')
-    # ax_2.plot([pred_joints[15,0], pred_joints[20,0]], [pred_joints[15,1], pred_joints[20,1]], [pred_joints[15,2], pred_joints[20,2]], color='b')
-    # ax_2.plot([pred_joints[19,0], pred_joints[20,0]], [pred_joints[19,1], pred_joints[20,1]], [pred_joints[19,2], pred_joints[20,2]], color='b')
 
     ax_2.view_init(-70, -70) 
     plt.draw()
@@ -199,7 +155,6 @@ def visualize(model_chk):
     out, transformed_image, transformed_joints, xy_boundingbox, depth_images, out_joints, pred_joints, median_depths = run_model(model_setup, train=False, test=True)
     print(f"epoch: {model_setup.epoch},\t avg_loss: {out['avg_loss']:1.4f},\t regression loss: {out['avg_reg_loss']:1.4f},\t classification loss: {out['avg_class_loss']:1.4f}")
 
-    # draw_img(transformed_image[0], pred_joints[0], transformed_joints[0])
     fig = plt.figure(figsize=(6,10))
 
     ax_1 = fig.add_subplot(2,1,1)
@@ -207,10 +162,7 @@ def visualize(model_chk):
     
     for i in range(transformed_image.shape[0]):
         pred_joint, true_joint = back_to_normal(pred_joints[i], transformed_joints[i], xy_boundingbox[i], median_depths[i])
-        # draw_img_normal(depth_images[i], pred_joint, true_joint, median_depths[i].item())
         vizualize_frams(ax_1, ax_2, depth_images[i], pred_joint, true_joint, median_depths[i].item(), out_joints[i])
-    
-    # visualize_point_cloud(depth_images[0], pred_joint, true_joint, median_depths[0].item())
 
 def main():
     args = get_arguments()

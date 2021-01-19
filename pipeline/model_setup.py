@@ -15,23 +15,19 @@ from model.a2j import A2J
 from model.a2j_utilities.post_processing import PostProcess
 from model.a2j_utilities.a2j_utils import A2JLoss
 
-from dataloader.dataLoader import A2J_DataLoader
 from dataloader.nyuDataLoader import A2J_NYU_DataLoader
 
 random.seed(0)
 
 class ModelSetup(object):
-    def __init__(self, img_path=const.DEPTH_IMG_PATH, joint_path=const.JOINT_JSON_PATH, train=True, test=False, load=None,\
+    def __init__(self, dataset_path=const.DATASET_PATH, train=True, test=False, load=None,\
                     num_classes=const.NUM_JOINTS, backbone_name=const.BACKBONE_NAME, backbone_pre_trained=const.PRE_TRAINED,\
-                    target_size=const.TARGET_SIZE, stride=const.STRIDE, is_3d=const.IS_3D,\
-                    # p_h=[2, 6], p_w=[2, 6], spacial_factor=const.SPACIAL_FACTOR, lr=const.LR_RATE, w_d=const.WEIGHT_DECAY,\
-                    p_h=None, p_w=None, spacial_factor=const.SPACIAL_FACTOR, lr=const.LR_RATE, w_d=const.WEIGHT_DECAY,\
-                    step_size=const.STEP_SIZE, gamma=const.GAMMA, reg_loss_fac=const.REG_LOSS_FACTOR, bs=const.BATCH_SIZE,\
-                    max_epoch=const.MAX_EPOCH, save_path=const.SAVE_PATH, save_freq=const.SAVE_FREQ, train_spit=const.TRAIN_VAL_SPLIT):
+                    target_size=const.TARGET_SIZE, stride=const.STRIDE, p_h=None, p_w=None, spacial_factor=const.SPACIAL_FACTOR,\
+                    lr=const.LR_RATE, w_d=const.WEIGHT_DECAY, step_size=const.STEP_SIZE, gamma=const.GAMMA, reg_loss_fac=const.REG_LOSS_FACTOR,\
+                    bs=const.BATCH_SIZE, max_epoch=const.MAX_EPOCH, save_path=const.SAVE_PATH, save_freq=const.SAVE_FREQ, train_spit=const.TRAIN_VAL_SPLIT):
 
         print("Setting up model...")
-        self.img_path = img_path
-        self.joint_path = joint_path
+        self.dataset_path = dataset_path
         self.save_path = save_path
 
         self.num_classes = num_classes
@@ -63,24 +59,9 @@ class ModelSetup(object):
         else:
             self.epoch = 0
 
-        # Setup data loading
-        img_name_list = glob(f"{self.joint_path}/*.json")
-        img_name_list = [name.split(".")[0] for name in img_name_list]
-        img_name_list = [name.split("/")[-1] for name in img_name_list]
-        img_name_list.sort()
-
-        train_names = random.choices(img_name_list, k=int(train_spit * len(img_name_list) / 100))
-        val_names = [name for name in img_name_list if not name in train_names]
-
-        dataloader_switcher = {
-            "Personal": A2J_DataLoader,
-            "NYU": A2J_NYU_DataLoader,
-        }
-        dataloader = dataloader_switcher[const.DATASET]
-
-        self.train_data = dataloader(train_names, train=True, img_path=self.img_path, joint_path=self.joint_path)
-        self.valid_data = dataloader(val_names, train=False, img_path=self.img_path, joint_path=self.joint_path)
-        self.test_data = dataloader(val_names, train=False, img_path=self.img_path, joint_path=self.joint_path)
+        self.train_data = A2J_NYU_DataLoader(train=True, dataset_path=self.dataset_path)
+        self.valid_data = A2J_NYU_DataLoader(train=False, dataset_path=self.dataset_path)
+        self.test_data = A2J_NYU_DataLoader(train=False, dataset_path=self.dataset_path)
 
         self.load_train = DataLoader(
             self.train_data,
@@ -110,8 +91,13 @@ class ModelSetup(object):
     def save(self, epoch):
         save_path = self.save_path
         if not os.path.isdir(save_path):
-            os.mkdir(save_path)
-        save_path += f"/{const.DATASET}_{const.DATA_SEGMENT}_{self.backbone_name}_{self.num_classes}_a2j.pth"
+            # os.mkdir(save_path)
+            try:
+                os.makedirs(save_path)
+            except OSError:
+                pass
+
+        save_path += f"/{const.DATASET}_{const.CAMERA_VIEW}_{self.backbone_name}_{self.num_classes}_a2j.pth"
 
         torch.save(dict(
             num_classes=self.num_classes,

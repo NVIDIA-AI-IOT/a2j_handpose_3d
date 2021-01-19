@@ -36,7 +36,6 @@ def train(model_path):
                 f"mean error: {train_out['mean_err'] : 1.4f},\t"\
                 f"max error: {train_out['max_err']:1.4f}\t"\
                 f"lr rate: {model_setup.sched.get_lr()[0]:1.9f}")
-        model_setup.save(epoch)
 
         if (epoch+1) % model_setup.save_freq == 0:
             train_val, mean_error_list, max_error_list = run_model(model_setup, train=False)

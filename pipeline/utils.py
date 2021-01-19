@@ -13,7 +13,7 @@ import pipeline.constants as const
 
 def get_latest_model(args):
     model_path = const.SAVE_PATH    
-    models = glob(f"{model_path}/{const.DATASET}_{const.DATA_SEGMENT}_{const.BACKBONE_NAME}_{const.NUM_JOINTS}_a2j.pth")
+    models = glob(f"{model_path}/{const.DATASET}_{const.CAMERA_VIEW}_{const.BACKBONE_NAME}_{const.NUM_JOINTS}_a2j.pth")
     return models[0]
 
 
