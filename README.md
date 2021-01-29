@@ -1,9 +1,9 @@
 # Hand Posture Estimation
 
-This repository implements a training pipeline for Anchor to Joint [A2J](https://jonathantompson.github.io/NYU_Hand_Pose_Dataset.htm) paper to train a hand posture estimation model based on depthmaps. We will use NYU Hands dataset to train out model. <br/>
+This repository implements a training pipeline for Anchor to Joint [A2J](https://arxiv.org/abs/1908.09999) paper to train a hand posture estimation model based on depth maps. We will use [NYU Hands dataset](https://jonathantompson.github.io/NYU_Hand_Pose_Dataset.htm) to train our model. <br/>
 The original authors did a great job publishing their code in the following repository [Link](https://github.com/zhangboshen/A2J) <br/>
-The main reason for a new pipeline is to modify number of joints, adding vizualization, and some preprocessing step to be able to run realtime infrence with [**Azure Kinect** camera](https://azure.microsoft.com/en-us/services/kinect-dk/).<br/>
-**NOTE** Please refer to the following repository for running realtime inference on a Jetson platform [Link](FILL ME)
+The main reason for a new pipeline is to modify the number of joints, adding visualization, and some preprocessing steps to be able to run real time inference with [**Azure Kinect** camera](https://azure.microsoft.com/en-us/services/kinect-dk/).<br/>
+**NOTE** Please refer to the following repository for running realtime inference on a Jetson platform after training the model [Link](https://github.com/NVIDIA-AI-IOT/realtime_handpose_3d)
 
 * [Download the dataset](#download_dataset)
 * [Setup Constants](#setup_constants)
@@ -13,7 +13,7 @@ The main reason for a new pipeline is to modify number of joints, adding vizuali
 <a name="download_dataset"></a>
 ## Download the dataset
 
-Pleae Download the (NYU Hand Pose Dataset)[https://jonathantompson.github.io/NYU_Hand_Pose_Dataset.htm] and unzip the folder.<br/>
+Pleae Download the [NYU Hand Pose Dataset](https://jonathantompson.github.io/NYU_Hand_Pose_Dataset.htm) and unzip the folder.<br/>
 
 <a name="setup_constants"></a>
 ## Setup Constants
@@ -33,7 +33,7 @@ SAVE_PATH="FULL/PATH/TO/SAVE/DIRECTORY"
 ```
 - (OPTIONAL) BACKBONE_NAME_SWITCHER. This will modify which network is used as the backbone. Set the backbone you want to use to **True**
 
-- (OPTIONAL) CAMERA_VIEW. NYU dataset has been collected with 3 different camera view points. A2J Trained their model on the front view, we will do same. You can also set this value to **ALL** in order to use all the different views.
+- (OPTIONAL) CAMERA_VIEW. NYU dataset has been collected with 3 different camera view points. A2J Trained their model on the front view, we will do the same. You can also set this value to **ALL** in order to use all the different views.
 
 - (OPTIONAL) NUM_JOINTS. You can set this to either 16 or 36. By default it is set to 16 joints.
 
