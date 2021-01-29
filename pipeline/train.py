@@ -49,16 +49,12 @@ def train(model_path):
 
         if (epoch+1) % model_setup.save_freq == 0:
             train_val, mean_error_list, max_error_list = run_model(model_setup, train=False)
-            print(f"
-
-validation epoch: {epoch},	"\
+            print(f"validation epoch: {epoch},	"\
                 f"avg_loss validation: {train_val['avg_loss']:1.4f},	"\
                 f"regression loss validation: {train_val['avg_reg_loss']:1.4f},	"\
                 f"classification loss validation: {train_val['avg_class_loss']:1.4f}"\
                 f"mean error: {train_val['mean_err'] : 1.4f},	"\
-                f"max error: {train_val['max_err']:1.4f}
-
-")
+                f"max error: {train_val['max_err']:1.4f}")
             model_setup.save(epoch)
 
     

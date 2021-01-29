@@ -58,8 +58,7 @@ class ModelSetup(object):
         self.criterion = A2JLoss(shape=(target_size[1]//16, target_size[0]//16), stride=stride,\
                                                     spacial_factor=spacial_factor, p_h=p_h, p_w=p_w)
         if load:
-            print(f"Loading model...
-{load}")
+            print(f"Loading model...{load}")
             check_point = torch.load(load, map_location=torch.device('cpu'))
             self.num_class = check_point["num_classes"]
             self.model = A2J(num_joints=num_classes, backbone_name=backbone_name, backbone_pretrained=backbone_pre_trained)
@@ -97,8 +96,7 @@ class ModelSetup(object):
             drop_last=False,
             num_workers=8,
         )
-        print("Model setup finished!
-")
+        print("Model setup finished!")
 
     def save(self, epoch):
         save_path = self.save_path
