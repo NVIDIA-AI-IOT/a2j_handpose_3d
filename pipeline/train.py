@@ -27,7 +27,7 @@ from pipeline.utils import *
 from pipeline.model_setup import ModelSetup
 from model.run import run_model
 
-SEED = 42
+SEED = 12345
 random.seed(SEED)
 np.random.seed(SEED)
 torch.manual_seed(SEED)
