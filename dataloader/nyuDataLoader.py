@@ -56,6 +56,7 @@ class A2J_NYU_DataLoader(Dataset):
         self.rand_crop_shift = rand_crop_shift
         self.rand_rotate = rand_rotate
         self.rand_scale = rand_scale
+        self.img_name_list.sort()
     
     def __len__(self):
         return len(self.img_name_list)

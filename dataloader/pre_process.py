@@ -54,7 +54,7 @@ def preprocess(img, joints, median, target_size=const.TARGET_SIZE, depth_thresh=
 
     joints = np.array(joints)
     if median < joints[:,2:3].min():
-        median = np.median(joints[:,2:3]) + 40
+        median = np.median(joints[:,2:3]) + np.random.randint(20, 40)
     else:
         median = median 
 
